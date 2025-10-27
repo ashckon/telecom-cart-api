@@ -73,33 +73,61 @@ Read **SPEC-A-ARCHITECTURE.md** and **SPEC-B-API.md** attached carefully - they 
 ### Result
 Implementation completed with all tests passing. **IMPLEMENTATION_SUMMARY.md**
 
+### What I Accepted:
+
+- **Initial project structure** - The proposed file organization with separate directories for types, errors, clients, services, and routes made logical sense
+- **TypeScript configuration** - Standard tsconfig.json setup with strict mode enabled was appropriate
+- **Jest configuration** - The test setup with ts-jest preset was correct for our needs
+- **Core type definitions** - The interfaces in `types/index.ts` accurately represented the domain models from the spec
+- **Custom error classes** - The four error types (ContextExpiredError, CartNotFoundError, ItemNotFoundError, ContextRecoveryFailedError) covered all necessary cases
+- **SalesforceCartClient implementation** - The test double correctly simulated context expiry behavior with the 30-minute timeout
+- **CartService recovery logic** - The core recovery mechanism (catch error, create context, migrate items, retry) was sound
+- **Test coverage strategy** - The three-level testing approach (unit tests for client, unit tests for service, integration tests) was comprehensive
+- **README structure** - The documentation format with setup instructions, API docs, and architecture explanation was clear
+
+### What I Modified:
+
+- **Express route handlers - Added explicit return statements**
+  - Initially, response handlers used `res.status().json()` without return statements
+  - Modified all response calls to use `return res.status().json()` pattern
+
+- **Error class cause property**
+  - Initial implementation had type errors with the `cause` property in ContextRecoveryFailedError
+  - Added explicit property declaration: `cause?: Error;`
+  - Removed incorrect `override` keyword that didn't exist in base Error class
+
+- **Response format validation**
+  - Reviewed actual cart ID format (`cart_${sessionId}`) against spec examples
+  - Verified it aligns with spec description: "Cart identifier (typically matches session)"
+  - Kept implementation as-is since it fulfills the contract
   ---
 
 ### Follow-Up 1: Add Return Statements to Responses
-**Observation:**
  Response calls in cart-routes.ts didn't use `return` statement, which is Express best practice.
+ 
  **Prompt:**
- "In cart-routes.ts, add `return` before all `res.status()` calls to make control flow explicit and prevent accidental code execution after response. This follows Express best practices." 
+ `"In cart-routes.ts, add `return` before all `res.status()` calls to make control flow explicit and prevent accidental code execution after response. This follows Express best practices."`
+ 
  **Result:** All responses now use `return res.status()...` pattern.
 
 
 ### Follow-Up 2: Add API Usage Examples
-
-**Motivation:**
  To help reviewers and future developers test the API easily.
+ 
 **Prompt:**
-"Create a bash script (example-usage.sh) that demonstrates the API by:
-- Creating a cart
-- Adding multiple items (5G plan, iPhone, phone cases)  
-- Updating item quantities
-- Showing final cart state
-	Use curl for HTTP requests and format JSON output nicely."
+`"Create a bash script (example-usage.sh) that demonstrates the API by:
+Creating a cart
+Adding multiple items (5G plan, iPhone, phone cases)  
+Updating item quantities
+Showing final cart state
+Use curl for HTTP requests and format JSON output nicely."`
 
 **Result:** Created executable script with real-world telecom examples.
 
 
 ### Follow-Up 3: Create Architecture Documentation 
-**Motivation:** The context recovery mechanism is the core value of this implementation. Visual documentation would help explain it clearly. 
+The context recovery mechanism is the core value of this implementation. Visual documentation would help explain it clearly.
 **Prompt:** 
-"Create ARCHITECTURE_FLOW.md with ASCII diagrams showing: 1. System architecture with 3 layers 2. Normal operation flow 3. Detailed context recovery flow (what happens when context expires) 4. Timeline showing context expiry over 30+ minutes 5. Data flow between sessions (persistent) and contexts (ephemeral) 6. Error handling for different scenarios Make the recovery mechanism crystal clear." 
+`"Create ARCHITECTURE_FLOW.md with ASCII diagrams showing: 1. System architecture with 3 layers 2. Normal operation flow 3. Detailed context recovery flow (what happens when context expires) 4. Timeline showing context expiry over 30+ minutes 5. Data flow between sessions (persistent) and contexts (ephemeral) 6. Error handling for different scenarios Make the recovery mechanism crystal clear."`
+
 **Result:** Comprehensive documentation with detailed diagrams explaining the system architecture and recovery process. 
